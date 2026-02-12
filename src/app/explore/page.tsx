@@ -9,7 +9,11 @@ import type { Lang } from "../lib/i18n";
 import { t } from "../lib/i18n";
 
 import LanguageToggle from "../components/LanguageToggle";
-import EventsMap from "../components/EventsMap";
+import dynamic from "next/dynamic";
+
+const EventsMap = dynamic(() => import("../components/EventsMap"), {
+  ssr: false,
+});
 import RagAnswer from "../components/RagAnswer";
 
 import { useLocalStorageState } from "../lib/useLocalStorageState";

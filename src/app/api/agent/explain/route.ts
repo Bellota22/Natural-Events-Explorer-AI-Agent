@@ -1,4 +1,6 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+
 export const dynamic = "force-dynamic";
 
 type ExplainBody = {
@@ -11,7 +13,7 @@ function safeStr(v: unknown) {
   return typeof v === "string" ? v : "";
 }
 
-// Intenta extraer JSON aunque venga envuelto en ```json ... ```
+// Tries to extract JSON even if wrapped in ```json ... ```
 function extractJson(text: string): any | null {
   const trimmed = (text || "").trim();
   if (!trimmed) return null;
@@ -38,25 +40,42 @@ function extractJson(text: string): any | null {
   return null;
 }
 
-export async function POST(req: Request) {
-  const body = (await req.json()) as ExplainBody;
+export async function POST(req: NextRequest) {
+  let body: ExplainBody;
+  try {
+    body = (await req.json()) as ExplainBody;
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
+  }
 
   const eventId = safeStr(body.eventId).trim();
-  const lang = body.lang === "en" ? "en" : "es";
+  const lang: "es" | "en" = body.lang === "en" ? "en" : "es";
   const userQuestion = safeStr(body.question).trim();
 
-  if (!eventId) return NextResponse.json({ message: "Missing eventId" }, { status: 400 });
+  if (!eventId) {
+    return NextResponse.json({ message: "Missing eventId" }, { status: 400 });
+  }
 
   const AGENT_ENDPOINT = process.env.DO_AGENT_ENDPOINT;
   const AGENT_ACCESS_KEY = process.env.DO_AGENT_ACCESS_KEY;
+
   if (!AGENT_ENDPOINT || !AGENT_ACCESS_KEY) {
     return NextResponse.json({ message: "Missing agent env vars" }, { status: 500 });
   }
 
+  // Fetch event details from EONET
   const eventRes = await fetch(`https://eonet.gsfc.nasa.gov/api/v3/events/${eventId}`, {
     cache: "no-store",
   });
-  if (!eventRes.ok) return NextResponse.json({ message: "EONET event fetch error" }, { status: 502 });
+
+  if (!eventRes.ok) {
+    const detail = await eventRes.text().catch(() => "");
+    return NextResponse.json(
+      { message: "EONET event fetch error", detail },
+      { status: 502 }
+    );
+  }
+
   const event = await eventRes.json();
 
   const defaultQuestion =
@@ -68,35 +87,35 @@ export async function POST(req: Request) {
 
   const languageRule = lang === "en" ? "Return content in English." : "Devuelve el contenido en español.";
 
-  const prompt = `
-You are an educational assistant.
-You MUST answer with valid JSON only (no markdown, no extra text).
-If you can't support a claim with the provided Event JSON or the attached Knowledge Base, say so in limitations.
-
-${languageRule}
-
-JSON schema (exact keys):
-{
-  "summary": "string (1-3 lines)",
-  "meaning": ["bullet", "bullet"],
-  "how_to_read": ["bullet", "bullet"],
-  "sources": [{"label":"string","url":"string"}],
-  "limitations": ["bullet"],
-  "next_steps": ["bullet"]
-}
-
-Guidance:
-- Keep it friendly and non-technical.
-- Explain: status/open/closed, geometry type, what sources mean.
-- Add sources URLs from Event JSON (and KB docs if relevant).
-- Don't invent precise causes/impacts. Provide general safety guidance only.
-
-User question:
-${question}
-
-Event JSON:
-${JSON.stringify(event, null, 2)}
-`.trim();
+  const prompt = [
+    "You are an educational assistant.",
+    "You MUST answer with valid JSON only (no markdown, no extra text).",
+    "If you can't support a claim with the provided Event JSON or the attached Knowledge Base, say so in limitations.",
+    "",
+    languageRule,
+    "",
+    "JSON schema (exact keys):",
+    "{",
+    '  "summary": "string (1-3 lines)",',
+    '  "meaning": ["bullet", "bullet"],',
+    '  "how_to_read": ["bullet", "bullet"],',
+    '  "sources": [{"label":"string","url":"string"}],',
+    '  "limitations": ["bullet"],',
+    '  "next_steps": ["bullet"]',
+    "}",
+    "",
+    "Guidance:",
+    "- Keep it friendly and non-technical.",
+    "- Explain: status/open/closed, geometry type, what sources mean.",
+    "- Add sources URLs from Event JSON (and KB docs if relevant).",
+    "- Don't invent precise causes/impacts. Provide general safety guidance only.",
+    "",
+    "User question:",
+    question,
+    "",
+    "Event JSON:",
+    JSON.stringify(event, null, 2),
+  ].join("\n");
 
   const url = `${AGENT_ENDPOINT.replace(/\/$/, "")}/api/v1/chat/completions`;
 
@@ -111,23 +130,25 @@ ${JSON.stringify(event, null, 2)}
       stream: false,
       include_retrieval_info: true,
       include_guardrails_info: true,
-      // si tu endpoint soporta:
+
+      // If your endpoint supports OpenAI-style JSON enforcement, this helps a lot:
+      // response_format: { type: "json_object" },
+
       // temperature: 0.2,
     }),
   });
 
   if (!agentRes.ok) {
-    const detail = await agentRes.text();
+    const detail = await agentRes.text().catch(() => "");
     return NextResponse.json({ message: "Agent request failed", detail }, { status: 502 });
   }
 
   const data = await agentRes.json();
-  const raw = data?.choices?.[0]?.message?.content ?? "";
+  const raw: string = data?.choices?.[0]?.message?.content ?? "";
   const parsed = extractJson(raw);
 
   const retrieval = data?.retrieval ?? data?.retrieval_info ?? null;
 
-  // Si no vino JSON, devolvemos fallback para que el UI lo muestre igual.
   return NextResponse.json({
     answer_raw: raw,
     answer_json: parsed,

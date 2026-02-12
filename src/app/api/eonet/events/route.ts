@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ function dedupeById(features: any[]) {
   return out;
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const statusRaw = (searchParams.get("status") ?? "open").toLowerCase();
