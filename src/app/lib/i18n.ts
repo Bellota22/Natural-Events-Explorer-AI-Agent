@@ -1,0 +1,56 @@
+export type Lang = "es" | "en";
+
+export const STRINGS: Record<Lang, Record<string, string>> = {
+  es: {
+    titleExplore: "Explorar eventos (EONET)",
+    subtitleExplore: "Filtra, selecciona un evento y pide una explicación con tu agente RAG.",
+    category: "Categoría",
+    all: "Todas",
+    days: "Días",
+    status: "Status",
+    events: "Eventos",
+    loading: "Cargando…",
+    noEvents: "No hay eventos para este filtro.",
+    selectEvent: "Selecciona un evento para ver detalles y pedir explicación.",
+    approxLocation: "Ubicación aproximada",
+    viewOnMap: "ver en mapa",
+    askExplain: "Pedir explicación (RAG)",
+    optionalQuestion: "Opcional: escribe una pregunta",
+    explain: "Explicar con RAG",
+    explaining: "Explicando…",
+    clear: "Limpiar",
+    answer: "Respuesta",
+    support: "Soporte (retrieval)",
+    mapTitle: "Mapa (solo eventos tipo Point)",
+    search: "Buscar",
+    searchPlaceholder: "Buscar por título…",
+  },
+  en: {
+    titleExplore: "Explore events (EONET)",
+    subtitleExplore: "Filter, select an event, and request an explanation from your RAG agent.",
+    category: "Category",
+    all: "All",
+    days: "Days",
+    status: "Status",
+    events: "Events",
+    loading: "Loading…",
+    noEvents: "No events for this filter.",
+    selectEvent: "Select an event to see details and request an explanation.",
+    approxLocation: "Approx. location",
+    viewOnMap: "view on map",
+    askExplain: "Ask for explanation (RAG)",
+    optionalQuestion: "Optional: type a question",
+    explain: "Explain with RAG",
+    explaining: "Explaining…",
+    clear: "Clear",
+    answer: "Answer",
+    support: "Support (retrieval)",
+    mapTitle: "Map (Point-only events)",
+    search: "Search",
+    searchPlaceholder: "Search by title…",
+  },
+};
+
+export function t(lang: Lang, key: string) {
+  return STRINGS[lang][key] ?? key;
+}

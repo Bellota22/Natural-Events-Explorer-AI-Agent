@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Natural Events Explorer + AI Agent (DigitalOcean Gradient™ AI Hackathon)
 
-## Getting Started
+A full-stack app to **explore natural events** on an **interactive map** and get a **clear, actionable explanation** powered by an **AI Agent** integrated with **DigitalOcean Gradient™ AI**.
 
-First, run the development server:
+Hackathon: DigitalOcean Gradient™ AI Hackathon  
+Deadline: March 18, 2026 — 4:00pm GMT-5
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ What this project does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Interactive map to explore natural events (wildfires, storms, volcanoes, etc.)
+- Internal API routes to keep the frontend simple:
+  - `/api/eonet/categories`
+  - `/api/eonet/events`
+  - `/api/eonet/events/[id]`
+- AI Agent endpoint to explain events:
+  - `/api/agent/explain`
+  - Generates: summary + context + recommendations + plain-language explanation
+- Multi-language support with a language toggle
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🧱 Tech stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js (App Router) + TypeScript
+- Leaflet (map)
+- DigitalOcean Gradient™ AI (AI Agent / inference)
+- NASA EONET (events data source)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🗂️ Project structure (high level)
 
-## Deploy on Vercel
+    src/
+      app/
+        api/
+          agent/explain/route.ts
+          eonet/
+            categories/route.ts
+            events/route.ts
+            events/[id]/route.ts
+        explore/page.tsx
+        page.tsx
+      components/
+        EventsMap.tsx
+        RagAnswer.tsx
+        LanguageToggle.tsx
+      lib/
+        geo.ts
+        i18n.ts
+        types.ts
+        useLocalStorageState.ts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Run locally
+
+### 1) Requirements
+- Node.js (LTS recommended)
+- npm (or pnpm/yarn)
+
+### 2) Environment variables
+
+Copy the example file:
+
+    cp .env.example .env
+
+Your `.env.example` contains:
+
+    DO_AGENT_ACCESS_KEY=
+    DO_AGENT_ENDPOINT=
+
+Fill them in your local `.env`:
+
+- `DO_AGENT_ACCESS_KEY`: DigitalOcean Gradient™ AI Agent access key/token
+- `DO_AGENT_ENDPOINT`: Agent endpoint URL (the inference endpoint you created)
+
+> Important: never commit `.env` to the repository.
+
+### 3) Install dependencies
+
+    npm install
+
+### 4) Start the dev server
+
+    npm run dev
+
+Open:
+
+    http://localhost:3000
+
+---
+
+## 🔌 API Endpoints
+
+### EONET (proxy / aggregation)
+- GET `/api/eonet/categories`
+- GET `/api/eonet/events`
+- GET `/api/eonet/events/:id`
+
+### AI Agent
+- POST `/api/agent/explain`
+
+Example request body:
+
+    {
+      "eventId": "EONET_EVENT_ID",
+      "language": "en",
+      "question": "Explain this event in simple terms and what I should monitor"
+    }
+
+---
+
+## 🧠 How DigitalOcean Gradient™ AI is used
+
+The Gradient™ AI integration is centralized in:
+
+    src/app/api/agent/explain/route.ts
+
+The goal is to transform event metadata (category, dates, location, and relevant details) into:
+- An executive-friendly summary
+- A plain-language explanation
+- Common risks/implications based on event type
+- Practical next steps (what to monitor / what to check next)
+
+---
+
+## ✅ Submission checklist (Hackathon)
+
+- Public repository with full source code and setup instructions
+- Open source LICENSE file (MIT recommended)
+- Public demo video (~3 minutes) on YouTube/Vimeo/Facebook Video
+- (Optional) Public live demo URL
+
+---
+
+## 🎥 Suggested demo video flow (≈ 3 minutes)
+
+1. Open `/explore` and show the map with active events.
+2. Select an event and show its details.
+3. Ask the AI Agent: “Explain this for a non-technical audience” / “What should I monitor?”
+4. Switch language with the toggle and repeat one query.
+5. Close with architecture: EONET → Next.js API routes → Gradient AI Agent → UI.
+
+---
+
+## 📄 License
+
+Add a `LICENSE` file (MIT recommended) to comply with the open-source requirement.
+
+---
+
+## 👤 Author
+
+Gabriel Villanueva Vega
