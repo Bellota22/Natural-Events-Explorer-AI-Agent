@@ -7,6 +7,29 @@ Deadline: March 18, 2026 — 4:00pm GMT-5
 
 ---
 
+
+## 🌐 Live demo
+
+https://do-agent-gabriel-villanueva.netlify.app/
+
+---
+
+## 📽️ Youtube video demo
+https://www.youtube.com/watch?v=pUomKwS0yQE
+
+
+---
+
+## Screenshots
+
+![Explore page](public/challenge1.png)
+![Event details](public/challenge2.png)
+![AI Agent response](public/challenge3.png)
+
+
+---
+
+
 ## ✨ What this project does
 
 - Interactive map to explore natural events (wildfires, storms, volcanoes, etc.)
@@ -144,6 +167,7 @@ The goal is to transform event metadata (category, dates, location, and relevant
 5. Close with architecture: EONET → Next.js API routes → Gradient AI Agent → UI.
 
 ---
+
 
 ## 📄 License
 
